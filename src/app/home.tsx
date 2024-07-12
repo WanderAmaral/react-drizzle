@@ -11,7 +11,7 @@ import {
   Text,
   Alert,
 } from "react-native";
-import { like } from "drizzle-orm";
+import { eq, like } from "drizzle-orm";
 
 type Data = {
   id: number;
@@ -28,8 +28,10 @@ export default function Home() {
 
   async function fetchProducts() {
     try {
-      const response = await db.query.product.findMany({ where: like(productSchema.product.name, `%${search}%`)});
-      
+      const response = await db.query.product.findMany({
+        where: like(productSchema.product.name, `%${search}%`),
+      });
+
       setData(response);
     } catch (error) {
       console.log(error);
@@ -40,7 +42,7 @@ export default function Home() {
     try {
       const response = await db.insert(productSchema.product).values({ name });
 
-      Alert.alert(`Casdrado com o ID: ${response.lastInsertRowId}`);
+      Alert.alert(`Cadastrado com o ID: ${response.lastInsertRowId}`);
       setName("");
       await fetchProducts();
     } catch (error) {
@@ -48,11 +50,26 @@ export default function Home() {
     }
   }
 
-  async function deleteProduct(id: string) {
+  async function deleteProduct(id: number) {
     try {
-      
+      Alert.alert("Remove", "Deseja remover?", [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "sim",
+          onPress: async () => {
+            await db
+              .delete(productSchema.product)
+              .where(eq(productSchema.product.id, id));
+
+            await fetchProducts();
+          },
+        },
+      ]);
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
 
@@ -89,18 +106,21 @@ export default function Home() {
         onChangeText={setSearch}
         value={search}
       />
-      
+
       <FlatList
         data={data}
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => (
-          <Pressable style={{ padding: 16, borderWidth: 1, borderRadius: 7 }}>
+          <Pressable
+            onLongPress={() => deleteProduct(item.id)}
+            style={{ padding: 16, borderWidth: 1, borderRadius: 7 }}
+          >
             <Text>{item.name}</Text>
           </Pressable>
         )}
         ListHeaderComponent={() => <Text>Produtos</Text>}
         ListEmptyComponent={() => <Text>Lista vazia</Text>}
-        contentContainerStyle={{gap: 16}}
+        contentContainerStyle={{ gap: 16 }}
       />
     </View>
   );
