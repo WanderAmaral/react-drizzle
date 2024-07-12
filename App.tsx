@@ -1,10 +1,10 @@
 import { View, Text, ActivityIndicator } from "react-native";
-
 import { drizzle } from "drizzle-orm/expo-sqlite";
 import { openDatabaseSync, SQLiteProvider } from "expo-sqlite";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import migrations from "./drizzle/migrations";
 import Home from "./src/app/home";
+import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
 
 const DATABASE_NAME = "database.db";
 const expoDB = openDatabaseSync(DATABASE_NAME);
@@ -12,6 +12,8 @@ const db = drizzle(expoDB);
 
 export default function App() {
   const { success, error } = useMigrations(db, migrations);
+
+  useDrizzleStudio(expoDB)
 
   if (error) {
     return (

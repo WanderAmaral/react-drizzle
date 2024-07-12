@@ -73,6 +73,22 @@ export default function Home() {
     }
   }
 
+  async function showProduct(id: number) {
+    try {
+      const product = await db.query.product.findFirst({
+        where: eq(productSchema.product.id, id),
+      });
+
+      if (product) {
+        Alert.alert(
+          `Produto ID: ${product.id} cadastrado com o nome ${product.name}`
+        );
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   useEffect(() => {
     fetchProducts();
   }, [search]);
@@ -112,6 +128,7 @@ export default function Home() {
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => (
           <Pressable
+          onPress={() => showProduct(item.id)}
             onLongPress={() => deleteProduct(item.id)}
             style={{ padding: 16, borderWidth: 1, borderRadius: 7 }}
           >
